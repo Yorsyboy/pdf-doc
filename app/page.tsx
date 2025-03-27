@@ -1,5 +1,7 @@
+"use client";
 import { useState } from "react";
 import FileUploader from "./Components/FileUploader";
+import PDFViewer from "./Components/PDFViewer";
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -12,6 +14,10 @@ export default function Home() {
 
       {/* Upload Section */}
       <FileUploader onFileUpload={setFile} />
+
+      <div className="mt-8">
+      <PDFViewer file={file} />
+      </div>
     </div>
   );
 }
