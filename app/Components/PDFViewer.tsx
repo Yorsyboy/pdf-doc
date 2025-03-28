@@ -666,38 +666,36 @@ export default function PDFViewer({ file }: { file: File | null }) {
         <p className="text-gray-500 text-center mt-8">No PDF loaded</p>
       )}
 
-      {pdfUrl && (
-        <div className="flex justify-between mt-4">
-          <div className="flex gap-2">
-        <button
-          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-          disabled={currentPage === 1}
-          className="p-2 disabled:opacity-50"
-        >
-          <ChevronLeft />
-        </button>
-        <span className="flex items-center">
-          Page {currentPage} of {numPages}
-        </span>
-        <button
-          onClick={() =>
-            setCurrentPage(Math.min(numPages || 1, currentPage + 1))
-          }
-          disabled={currentPage === numPages}
-          className="p-2 disabled:opacity-50"
-        >
-          <ChevronRight />
-        </button>
-          </div>
+      <div className="flex justify-between mt-4">
+        <div className="flex gap-2">
           <button
-        onClick={exportPDF}
-        className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="p-2 disabled:opacity-50"
           >
-        <Download size={18} />
-        Export Annotated PDF
+            <ChevronLeft />
+          </button>
+          <span className="flex items-center">
+            Page {currentPage} of {numPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage(Math.min(numPages || 1, currentPage + 1))
+            }
+            disabled={currentPage === numPages}
+            className="p-2 disabled:opacity-50"
+          >
+            <ChevronRight />
           </button>
         </div>
-      )}
+        <button
+          onClick={exportPDF}
+          className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
+        >
+          <Download size={18} />
+          Export Annotated PDF
+        </button>
+      </div>
     </div>
   );
 }
