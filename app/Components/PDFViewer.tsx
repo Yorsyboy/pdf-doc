@@ -11,10 +11,13 @@ import {
   Underline,
   MessageSquare,
   Pen,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { PDFDocument, rgb } from "pdf-lib";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
 
@@ -59,6 +62,20 @@ export default function PDFViewer({ file }: { file: File | null }) {
   } | null>(null);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const [containerWidth, setContainerWidth] = useState(800);
+
+  // Set the default width of the container to 800px
+  useEffect(() => {
+    const updateWidth = () => {
+      const newWidth = Math.min(window.innerWidth - 40, 800);
+      setContainerWidth(newWidth);
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
 
   // Create a stable URL for the PDF file
   useEffect(() => {
@@ -107,12 +124,46 @@ export default function PDFViewer({ file }: { file: File | null }) {
     }
   };
 
+  const handleTouchStart = (event: React.TouchEvent) => {
+    if (!activeTool || !pdfContainerRef.current) return;
+
+    const touch = event.touches[0];
+    const rect = pdfContainerRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+
+    if (activeTool === "freehand") {
+      setIsDrawing(true);
+      setCurrentPath([{ x, y }]);
+    } else if (activeTool === "highlight" || activeTool === "underline") {
+      setSelection({ start: { x, y }, end: { x, y } });
+    }
+  };
+
   const handleMouseMove = (event: React.MouseEvent) => {
     if (!activeTool || !pdfContainerRef.current) return;
 
     const rect = pdfContainerRef.current.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
+
+    if (isDrawing && activeTool === "freehand") {
+      setCurrentPath((prev) => [...prev, { x, y }]);
+    } else if (
+      selection &&
+      (activeTool === "highlight" || activeTool === "underline")
+    ) {
+      setSelection((prev) => (prev ? { ...prev, end: { x, y } } : null));
+    }
+  };
+
+  const handleTouchMove = (event: React.TouchEvent) => {
+    if (!activeTool || !pdfContainerRef.current || !isDrawing) return;
+
+    const touch = event.touches[0];
+    const rect = pdfContainerRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
 
     if (isDrawing && activeTool === "freehand") {
       setCurrentPath((prev) => [...prev, { x, y }]);
@@ -142,7 +193,8 @@ export default function PDFViewer({ file }: { file: File | null }) {
     ) {
       // Calculate width and height properly
       const width = Math.abs(selection.end.x - selection.start.x);
-      const height = activeTool === "highlight" ? 20 : 2; // Fixed height for highlight/underline
+      // Fixed height for highlight/underline
+      const height = activeTool === "highlight" ? 20 : 2;
 
       // Calculate position considering drag direction
       const x = Math.min(selection.start.x, selection.end.x);
@@ -299,9 +351,11 @@ export default function PDFViewer({ file }: { file: File | null }) {
             height: `${signature.height}px`,
           }}
         >
-          <img
+          <Image
             src={signature.imageData}
             alt="signature"
+            width={signature.width}
+            height={signature.height}
             className="w-full h-full object-contain"
           />
           <button
@@ -356,15 +410,13 @@ export default function PDFViewer({ file }: { file: File | null }) {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = pdfDoc.getPages();
 
-      // Get scaling factors to match Page component width)
-      const DISPLAY_WIDTH = 800;
       const pdfPageWidth = pages[0].getWidth();
-      const scale = pdfPageWidth / DISPLAY_WIDTH;
+      const scaleFactor = pdfPageWidth / containerWidth;
 
       // Coordinate conversion function
       const toPDFCoords = (x: number, y: number, pageHeight: number) => ({
-        x: x * scale,
-        y: pageHeight - y * scale, // Flip Y-axis
+        x: x * scaleFactor,
+        y: pageHeight - y * scaleFactor,
       });
 
       // Process all annotations
@@ -383,15 +435,15 @@ export default function PDFViewer({ file }: { file: File | null }) {
               page.drawRectangle({
                 x,
                 y,
-                width: annotation.width * scale,
-                height: annotation.height * scale,
+                width: annotation.width * scaleFactor,
+                height: annotation.height * scaleFactor,
                 color: annotation.color
                   ? rgb(
                       parseInt(annotation.color.substring(1, 3), 16) / 255,
                       parseInt(annotation.color.substring(3, 5), 16) / 255,
                       parseInt(annotation.color.substring(5, 7), 16) / 255
                     )
-                  : rgb(1, 1, 0), // Default yellow
+                  : rgb(1, 1, 0), // Default color
                 opacity: 0.4,
               });
             }
@@ -407,7 +459,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
               page.drawRectangle({
                 x,
                 y: y - 2,
-                width: annotation.width * scale,
+                width: annotation.width * scaleFactor,
                 height: 2,
                 color: annotation.color
                   ? rgb(
@@ -415,7 +467,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
                       parseInt(annotation.color.substring(3, 5), 16) / 255,
                       parseInt(annotation.color.substring(5, 7), 16) / 255
                     )
-                  : rgb(1, 0, 0), // Default red
+                  : rgb(1, 0, 0), // Default color
                 opacity: 0.8,
               });
             }
@@ -428,7 +480,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
                 annotation.position.y,
                 pageHeight
               );
-              // Background
               page.drawRectangle({
                 x,
                 y: y - 15,
@@ -437,7 +488,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
                 color: rgb(1, 1, 0.8),
                 opacity: 0.8,
               });
-              // Text
               page.drawText(annotation.text, {
                 x: x + 2,
                 y: y - 12,
@@ -449,7 +499,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
 
           case "freehand":
             if (annotation.positions && annotation.positions.length >= 2) {
-              // Draw each segment individually
               for (let i = 1; i < annotation.positions.length; i++) {
                 const start = toPDFCoords(
                   annotation.positions[i - 1].x,
@@ -472,7 +521,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
                         parseInt(annotation.color.substring(3, 5), 16) / 255,
                         parseInt(annotation.color.substring(5, 7), 16) / 255
                       )
-                    : rgb(0, 0, 1), // Default blue
+                    : rgb(0, 0, 1), // Default color
                   opacity: 1,
                 });
               }
@@ -481,7 +530,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
         }
       }
 
-      // Process signatures
+      // Process all signatures
       for (const signature of signatures) {
         const page = pages[signature.page - 1];
         const pageHeight = page.getHeight();
@@ -503,8 +552,8 @@ export default function PDFViewer({ file }: { file: File | null }) {
           page.drawImage(signatureImage, {
             x,
             y,
-            width: signature.width * scale,
-            height: signature.height * scale,
+            width: signature.width * scaleFactor,
+            height: signature.height * scaleFactor,
           });
         } catch (error) {
           console.error("Error embedding signature:", error);
@@ -540,8 +589,8 @@ export default function PDFViewer({ file }: { file: File | null }) {
   };
 
   return (
-    <div className="border rounded-lg p-4 max-w-4xl mx-auto">
-      <div className="flex gap-2 mb-2 flex-wrap">
+    <div className="border rounded-lg p-4 mx-auto w-full max-w-4xl overflow-x-auto">
+      <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
         <button
           onClick={() =>
             setActiveTool(activeTool === "highlight" ? null : "highlight")
@@ -609,6 +658,20 @@ export default function PDFViewer({ file }: { file: File | null }) {
             className="w-8 h-8"
           />
         </div>
+        <div className="flex items-center gap-2 ml-2">
+          <button
+            onClick={() => setScale((prev) => Math.min(prev + 0.1, 2))}
+            className="p-1 rounded bg-gray-200"
+          >
+            <ZoomIn size={16} />
+          </button>
+          <button
+            onClick={() => setScale((prev) => Math.max(prev - 0.1, 0.5))}
+            className="p-1 rounded bg-gray-200"
+          >
+            <ZoomOut size={16} />
+          </button>
+        </div>
       </div>
 
       {pdfUrl ? (
@@ -618,6 +681,9 @@ export default function PDFViewer({ file }: { file: File | null }) {
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleMouseUp}
         >
           <Document
             file={pdfUrl}
@@ -630,7 +696,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
           >
             <Page
               pageNumber={currentPage}
-              width={800}
+              width={containerWidth * scale}
               renderTextLayer={false}
               renderAnnotationLayer={false}
               loading={
@@ -651,6 +717,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
           {renderSelection()}
 
           {/* Freehand drawing preview */}
+
           {isDrawing && currentPath.length > 1 && (
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none">
               <polyline
