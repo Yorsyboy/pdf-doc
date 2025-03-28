@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, FileRejection} from "react-dropzone";
 import { toast } from "react-toastify";
 
 type FileUploaderProps = {
@@ -8,7 +8,7 @@ type FileUploaderProps = {
 
 export default function FileUploader({ onFileUpload }: FileUploaderProps) {
   const onDrop = useCallback(
-    (acceptedFiles: File[], fileRejections: any[]) => {
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
       if (fileRejections.length > 0) {
         // Handle rejected files
         const rejection = fileRejections[0];
@@ -33,7 +33,7 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
             position: "top-right",
             autoClose: 3000,
           });
-        } catch (error) {
+        } catch (error: unknown) {
           toast.error("Failed to process PDF", {
             position: "top-right",
             autoClose: 3000,
