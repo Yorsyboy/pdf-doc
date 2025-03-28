@@ -5,10 +5,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Trash,
   Download,
   X,
-  Type,
   Highlighter,
   Underline,
   MessageSquare,
@@ -60,7 +58,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
   } | null>(null);
   const [showSignatureModal, setShowSignatureModal] = useState(false);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
-  const pdfDocumentRef = useRef<any>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
   // Create a stable URL for the PDF file
@@ -166,26 +163,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
     setIsDrawing(false);
     setCurrentPath([]);
     setSelection(null);
-  };
-
-  const addSignature = (imageData: string) => {
-    if (!pdfContainerRef.current) return;
-
-    const rect = pdfContainerRef.current.getBoundingClientRect();
-    const x = rect.width / 2 - 50;
-    const y = rect.height / 2 - 25;
-
-    const newSignature: Signature = {
-      id: uuidv4(),
-      page: currentPage,
-      imageData,
-      position: { x, y },
-      width: 100,
-      height: 50,
-    };
-
-    setSignatures((prev) => [...prev, newSignature]);
-    setShowSignatureModal(false);
   };
 
   const removeAnnotation = (id: string) => {
@@ -366,7 +343,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
     );
   };
 
-  // Add this function to handle PDF export
+  // function to handle PDF export
   const exportPDF = async () => {
     if (!file || !pdfUrl || !pdfContainerRef.current) {
       console.error("Missing required elements for export");
@@ -379,7 +356,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
       const pdfDoc = await PDFDocument.load(pdfBytes);
       const pages = pdfDoc.getPages();
 
-      // Get scaling factors (must match your Page component width)
+      // Get scaling factors to match Page component width)
       const DISPLAY_WIDTH = 800;
       const pdfPageWidth = pages[0].getWidth();
       const scale = pdfPageWidth / DISPLAY_WIDTH;
@@ -471,7 +448,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
             break;
 
           case "freehand":
-            // Type-safe check for positions array
             if (annotation.positions && annotation.positions.length >= 2) {
               // Draw each segment individually
               for (let i = 1; i < annotation.positions.length; i++) {
@@ -680,7 +656,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
           )}
         </div>
       ) : (
-        <p className="text-gray-500">No PDF loaded</p>
+        <p className="text-gray-500 text-center">No PDF loaded</p>
       )}
 
       <div className="flex justify-between mt-4">
