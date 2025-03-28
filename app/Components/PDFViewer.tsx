@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import { PDFDocument, rgb } from "pdf-lib";
+import { toast } from "react-toastify";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/legacy/build/pdf.worker.min.mjs`;
 
@@ -56,7 +57,6 @@ export default function PDFViewer({ file }: { file: File | null }) {
     start: { x: number; y: number };
     end: { x: number; y: number };
   } | null>(null);
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -526,9 +526,16 @@ export default function PDFViewer({ file }: { file: File | null }) {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }, 100);
+      toast.success("PDF exported successfully!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } catch (error) {
       console.error("PDF export failed:", error);
-      alert("Failed to export PDF. Please check console for details.");
+      toast.error("Failed to export PDF. Please check console for details.", {
+        position: "top-right",
+        autoClose: 3000,
+      });
     }
   };
 
@@ -656,40 +663,41 @@ export default function PDFViewer({ file }: { file: File | null }) {
           )}
         </div>
       ) : (
-        <p className="text-gray-500 text-center">No PDF loaded</p>
+        <p className="text-gray-500 text-center mt-8">No PDF loaded</p>
       )}
 
-      <div className="flex justify-between mt-4">
-        <div className="flex gap-2">
+      {pdfUrl && (
+        <div className="flex justify-between mt-4">
+          <div className="flex gap-2">
+        <button
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="p-2 disabled:opacity-50"
+        >
+          <ChevronLeft />
+        </button>
+        <span className="flex items-center">
+          Page {currentPage} of {numPages}
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage(Math.min(numPages || 1, currentPage + 1))
+          }
+          disabled={currentPage === numPages}
+          className="p-2 disabled:opacity-50"
+        >
+          <ChevronRight />
+        </button>
+          </div>
           <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="p-2 disabled:opacity-50"
+        onClick={exportPDF}
+        className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
           >
-            <ChevronLeft />
-          </button>
-          <span className="flex items-center">
-            Page {currentPage} of {numPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(numPages || 1, currentPage + 1))
-            }
-            disabled={currentPage === numPages}
-            className="p-2 disabled:opacity-50"
-          >
-            <ChevronRight />
+        <Download size={18} />
+        Export Annotated PDF
           </button>
         </div>
-
-        <button
-          onClick={exportPDF}
-          className="mt-4 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded flex items-center gap-2"
-        >
-          <Download size={18} />
-          Export Annotated PDF
-        </button>
-      </div>
+      )}
     </div>
   );
 }
