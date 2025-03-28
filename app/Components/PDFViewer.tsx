@@ -540,7 +540,7 @@ export default function PDFViewer({ file }: { file: File | null }) {
   };
 
   return (
-    <div className="border rounded-lg p-4">
+    <div className="border rounded-lg p-4 max-w-4xl mx-auto">
       <div className="flex gap-2 mb-2 flex-wrap">
         <button
           onClick={() =>

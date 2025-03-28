@@ -9,7 +9,7 @@ type FileUploaderProps = {
 export default function FileUploader({ onFileUpload }: FileUploaderProps) {
   const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
     if (fileRejections.length > 0) {
-      // Handle rejected files (wrong type, etc.)
+      // Handle rejected files 
       const rejection = fileRejections[0];
       if (rejection.errors[0].code === "file-invalid-type") {
         toast.error("Please upload a PDF file only", {
@@ -51,7 +51,7 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
     <>
       <div
         {...getRootProps()}
-        className="border-2 border-dashed p-6 rounded-lg text-center cursor-pointer bg-gray-100 hover:bg-gray-50 transition-colors"
+        className="border-2 border-dashed p-6 rounded-lg text-center cursor-pointer bg-gray-100 hover:bg-gray-50 transition-colors max-w-4xl mx-auto"
       >
         <input {...getInputProps()} />
         <p className="text-gray-700">
