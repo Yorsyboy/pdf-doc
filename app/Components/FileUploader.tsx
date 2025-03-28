@@ -7,39 +7,42 @@ type FileUploaderProps = {
 };
 
 export default function FileUploader({ onFileUpload }: FileUploaderProps) {
-  const onDrop = useCallback((acceptedFiles: File[], fileRejections: any[]) => {
-    if (fileRejections.length > 0) {
-      // Handle rejected files 
-      const rejection = fileRejections[0];
-      if (rejection.errors[0].code === "file-invalid-type") {
-        toast.error("Please upload a PDF file only", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } else {
-        toast.error("Error uploading file", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+  const onDrop = useCallback(
+    (acceptedFiles: File[], fileRejections: any[]) => {
+      if (fileRejections.length > 0) {
+        // Handle rejected files
+        const rejection = fileRejections[0];
+        if (rejection.errors[0].code === "file-invalid-type") {
+          toast.error("Please upload a PDF file only", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("Error uploading file", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+        return;
       }
-      return;
-    }
 
-    if (acceptedFiles.length > 0) {
-      try {
-        onFileUpload(acceptedFiles[0]);
-        toast.success("PDF uploaded successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      } catch (error) {
-        toast.error("Failed to process PDF", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+      if (acceptedFiles.length > 0) {
+        try {
+          onFileUpload(acceptedFiles[0]);
+          toast.success("PDF uploaded successfully!", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } catch (error) {
+          toast.error("Failed to process PDF", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
       }
-    }
-  }, [onFileUpload]);
+    },
+    [onFileUpload]
+  );
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -51,14 +54,13 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
     <>
       <div
         {...getRootProps()}
-        className="border-2 border-dashed p-6 rounded-lg text-center cursor-pointer bg-gray-100 hover:bg-gray-50 transition-colors max-w-4xl mx-auto"
+        className="border-2 border-dashed p-6 rounded-lg text-center cursor-pointer bg-gray-200 hover:bg-gray-50 transition-colors max-w-4xl mx-auto"
       >
         <input {...getInputProps()} />
         <p className="text-gray-700">
           Drag & Drop a PDF here, or click to select a PDF file
         </p>
       </div>
-      
     </>
   );
 }
