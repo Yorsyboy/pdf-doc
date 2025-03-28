@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDF Annotation Web App
 
-## Getting Started
+A web application for viewing, annotating, and exporting PDF documents with various annotation tools.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 📄 PDF viewing with page navigation
+- ✏️ Annotation tools (highlight, underline, comment, freehand drawing)
+- 💾 Export annotated PDFs
+- 🎨 Customizable colors for annotations
+- 📱 Responsive design
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Libraries and Tools Used
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- React PDF (react-pdf): To render and display PDF files.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- React-dropzone: For drag and drop.
 
-## Learn More
+- Pdf-lib: For exporting  pdf file.
 
-To learn more about Next.js, take a look at the following resources:
+- Tailwind CSS: For styling and layout.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Lucide React: Provides a clean icon set for UI elements.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- React Hooks: Used for managing component state and effects.
 
-## Deploy on Vercel
+- React-toastify: For notification.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- TypeScript: To ensure type safety and catch errors  during development 
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- npm or yarn
+
+### Installation
+
+- Clone the repository:
+ **Run** [**git clone** ```https://github.com/Yorsyboy/pdf-doc.git```]
+- Install dependence:
+ **Run** [```cd pdf-doc```]
+ **Run** [```npm i or yarn add``]
+- Start the development server:
+ **Run** [```npm run dev or yarn dev`]
+- Open your browser and navigate to:
+  [``http://localhost:3000``]
+
+  ### Challenges and Solutions
+
+- PDF Coordinate System Differences:
+
+    Challenge: Browser and PDF coordinate systems differ (Y-axis inverted)
+
+    Solution: Implemented conversion functions to properly position annotations
+- Annotation:
+
+    Challenge: Maintaining annotations across page changes
+
+    Solution: Created a state management system that tracks annotations per page
+
+- Signature Export Issues:
+
+    Challenge: Signatures weren't appearing in exported PDFs
+
+    Solution: Fixed base64 image processing and proper coordinate transformation
+
+### Features Enhancements ( if i had more time )
+
+- User Authentication:
+
+    - Save and load annotated documents per user
+    - Cloud storage integration
+
+- Undo/Redo Functionality
+
+    - Enable users to revert annotation actions.
