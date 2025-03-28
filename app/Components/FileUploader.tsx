@@ -34,7 +34,8 @@ export default function FileUploader({ onFileUpload }: FileUploaderProps) {
             autoClose: 3000,
           });
         } catch (error: unknown) {
-          toast.error("Failed to process PDF", {
+          const errorMessage = error instanceof Error ? error.message : "Failed to process PDF";
+          toast.error(errorMessage, {
             position: "top-right",
             autoClose: 3000,
           });
